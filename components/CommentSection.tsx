@@ -77,8 +77,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ projectId, comments, on
           <h4 className="text-lg font-semibold text-black">あなたの立場を選択してください</h4>
           <p className="text-gray-600 mt-2 mb-6">コメントの表示が最適化されます。</p>
           <div className="flex gap-4">
-            <button onClick={() => handleRoleSelect('company')} className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">自社</button>
-            <button onClick={() => handleRoleSelect('agency')} className="px-6 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors">広告代理店</button>
+            <button onClick={() => handleRoleSelect('company')} className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">振興会</button>
+            <button onClick={() => handleRoleSelect('agency')} className="px-6 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors">山陽PR</button>
           </div>
         </div>
       ) : (

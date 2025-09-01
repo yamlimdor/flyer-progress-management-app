@@ -9,7 +9,7 @@ interface StatusUpdaterProps {
 
 const StatusUpdater: React.FC<StatusUpdaterProps> = ({ projectId, currentStatus, onUpdateStatus }) => {
   const [selectedStatus, setSelectedStatus] = useState<ProjectStatus>(currentStatus);
-  const availableStatuses: ProjectStatus[] = ['未定', '依頼準備中', '制作中', '振興会確認中', '修正指示あり', '印刷・納品待ち', '完了', '不要'];
+  const availableStatuses: ProjectStatus[] = ['未定', '依頼準備中', '制作中', '振興会確認中', '修正指示あり', '印刷・納品待ち', '完了'];
 
   useEffect(() => {
     setSelectedStatus(currentStatus);

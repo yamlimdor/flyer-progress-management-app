@@ -1,9 +1,9 @@
 import React, { useState, FormEvent } from 'react';
 import type { Project } from '../types';
+import { EVENT_NAMES } from '../lib/config';
 
 interface NewProjectFormProps {
-  onAddProject: (projectData: Omit<Project, 'id' | 'status' | 'createdAt'>) => void;
-  onCancel: () => void;
+  onAddProject: (projectData: Omit<Project, 'id' | 'createdAt'>) => void;
 }
 
 const NewProjectForm: React.FC<NewProjectFormProps> = ({ onAddProject, onCancel }) => {
@@ -15,20 +15,27 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ onAddProject, onCancel 
   const [deliveryHopeDate, setDeliveryHopeDate] = useState('');
   const [notes, setNotes] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
+  const [numberOfRecruits, setNumberOfRecruits] = useState<number | ''>('');
+  const [flyerNotNeeded, setFlyerNotNeeded] = useState(false);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!eventName || !eventDate || !deliveryHopeDate || printCount === '') return;
+    if (!eventName || !eventDate) return; // eventName and eventDate are still required
+
+    const newProjectStatus = '未定'; // Initial status, '不要' is handled by flyerNotNeeded boolean
 
     onAddProject({
       eventName,
       eventDate,
       eventTime,
       eventLocation,
-      printCount: Number(printCount),
-      deliveryHopeDate,
+      printCount: printCount === '' ? undefined : Number(printCount),
+      deliveryHopeDate: deliveryHopeDate === '' ? undefined : deliveryHopeDate,
       notes,
       isUrgent,
+      numberOfRecruits: numberOfRecruits === '' ? undefined : Number(numberOfRecruits),
+      flyerNotNeeded,
+      status: newProjectStatus, // Add the status here
     });
   };
 
@@ -38,7 +45,12 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ onAddProject, onCancel 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="eventName" className="block text-sm font-medium text-gray-800">イベント名</label>
-          <input type="text" id="eventName" value={eventName} onChange={(e) => setEventName(e.target.value)} required className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
+          <select id="eventName" value={eventName} onChange={(e) => setEventName(e.target.value)} required className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]">
+            <option value="">選択してください</option>
+            {EVENT_NAMES.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -57,14 +69,19 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ onAddProject, onCancel 
           <input type="text" id="eventLocation" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
         </div>
 
+        <div>
+          <label htmlFor="numberOfRecruits" className="block text-sm font-medium text-gray-800">募集人数</label>
+          <input type="number" id="numberOfRecruits" value={numberOfRecruits} onChange={(e) => setNumberOfRecruits(e.target.value === '' ? '' : parseInt(e.target.value))} className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="printCount" className="block text-sm font-medium text-gray-800">印刷枚数</label>
-            <input type="number" id="printCount" value={printCount} onChange={(e) => setPrintCount(e.target.value === '' ? '' : parseInt(e.target.value))} required className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
+            <input type="number" id="printCount" value={printCount} onChange={(e) => setPrintCount(e.target.value === '' ? '' : parseInt(e.target.value))} className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
           </div>
           <div>
             <label htmlFor="deliveryHopeDate" className="block text-sm font-medium text-gray-800">希望納品日</label>
-            <input type="date" id="deliveryHopeDate" value={deliveryHopeDate} onChange={(e) => setDeliveryHopeDate(e.target.value)} required className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
+            <input type="date" id="deliveryHopeDate" value={deliveryHopeDate} onChange={(e) => setDeliveryHopeDate(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#c3d825] focus:border-[#c3d825]" />
           </div>
         </div>
 
@@ -90,6 +107,26 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ onAddProject, onCancel 
                   早期納品を希望する (急ぎ案件)
                 </label>
                 <p className="text-gray-600">ダッシュボードで案件がハイライト表示されます。</p>
+              </div>
+            </div>
+        </div>
+
+        <div className="pt-2">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="flyerNotNeeded"
+                  name="flyerNotNeeded"
+                  type="checkbox"
+                  checked={flyerNotNeeded}
+                  onChange={(e) => setFlyerNotNeeded(e.target.checked)}
+                  className="focus:ring-[#c3d825] h-4 w-4 text-[#c3d825] border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="flyerNotNeeded" className="font-medium text-gray-800">
+                  チラシ不要
+                </label>
               </div>
             </div>
         </div>

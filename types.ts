@@ -5,8 +5,7 @@ export type ProjectStatus =
   | '振興会確認中'
   | '修正指示あり'
   | '印刷・納品待ち'
-  | '完了'
-  | '不要';
+  | '完了';
 
 export type UserRole = 'company' | 'agency';
 
@@ -38,4 +37,6 @@ export interface Project {
   isUrgent: boolean;
   files?: ProjectFile[];
   comments?: Comment[];
+  numberOfRecruits?: number;
+  flyerNotNeeded?: boolean;
 }

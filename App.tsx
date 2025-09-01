@@ -19,10 +19,11 @@ interface ProjectDetailProps {
   onAddFile: (projectId: string, file: File) => void;
   onAddComment: (projectId: string, commentText: string, userName: string, role: UserRole) => void;
   onUpdateProject: (projectId: string, updatedData: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
-  onDeleteFile: (projectId: string, fileName: string) => void; // New prop
+  onDeleteFile: (projectId: string, fileName: string) => void;
+  onDeleteProject: (projectId: string) => void; // New prop
 }
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onUpdateStatus, onAddFile, onAddComment, onUpdateProject, onDeleteFile }) => {
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onUpdateStatus, onAddFile, onAddComment, onUpdateProject, onDeleteFile, onDeleteProject }) => {
     return (
         <div>
             <a href="/" className="inline-block mb-6 px-4 py-2 bg-gray-700 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">← ダッシュボードに戻る</a>
@@ -30,7 +31,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onUpdateStatus, 
             <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-start gap-8">
                 
                 <div className="flex flex-col gap-8">
-                    <ProjectInfo project={project} onUpdateProject={onUpdateProject} />
+                    <ProjectInfo project={project} onUpdateProject={onUpdateProject} onDeleteProject={onDeleteProject} />
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <StatusUpdater 
@@ -43,7 +44,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onUpdateStatus, 
                             projectId={project.id}
                             files={project.files || []}
                             onAddFile={onAddFile}
-                            onDeleteFile={onDeleteFile} // Pass the new prop
+                            onDeleteFile={onDeleteFile}
                         />
                     </div>
                 </div>
@@ -52,7 +53,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onUpdateStatus, 
                     projectId={project.id}
                     comments={project.comments || []}
                     onAddComment={onAddComment}
-                />
+                /> 
             </div>
         </div>
     );
@@ -70,7 +71,8 @@ const App: React.FC = () => {
       updateProjectStatus, 
       addFileToProject, 
       addCommentToProject,
-      deleteFileFromProject // Get the new function
+      deleteFileFromProject,
+      deleteProject // Get the new function
   } = useProjects();
   const [locationHash, setLocationHash] = useState(window.location.hash);
 
@@ -118,7 +120,8 @@ const App: React.FC = () => {
                 onAddFile={addFileToProject} 
                 onAddComment={addCommentToProject}
                 onUpdateProject={handleUpdateProject}
-                onDeleteFile={deleteFileFromProject} // Pass the new function
+                onDeleteFile={deleteFileFromProject}
+                onDeleteProject={deleteProject} // Pass the new function
             />;
         }
         return <div className="text-center"><p>案件が見つかりませんでした。</p><a href="/" className="text-black hover:underline hover:text-[#c3d825]">ダッシュボードに戻る</a></div>;

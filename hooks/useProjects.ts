@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Project, ProjectStatus, ProjectFile, Comment, UserRole } from '../types';
+import { EVENT_NAMES } from '../lib/config';
 
 export interface UseProjectsReturn {
   projects: Project[];
   error: string | null;
-  addProject: (newProjectData: Omit<Project, 'id' | 'status' | 'createdAt'>) => Promise<void>;
+  addProject: (newProjectData: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
   updateProject: (projectId: string, updatedData: Partial<Omit<Project, 'id' | 'createdAt'>>) => Promise<void>;
   updateProjectStatus: (projectId: string, newStatus: ProjectStatus) => Promise<void>;
   addFileToProject: (projectId: string, file: File) => Promise<void>;
   addCommentToProject: (projectId: string, commentText: string, userName: string, role: UserRole) => Promise<void>;
   deleteFileFromProject: (projectId: string, fileName: string) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
 }
 
 export const useProjects = (): UseProjectsReturn => {
@@ -27,7 +29,22 @@ export const useProjects = (): UseProjectsReturn => {
       console.error('Error fetching projects:', error);
       setError(`データの取得に失敗しました: ${error.message}`);
     } else {
-      setProjects(data as Project[]);
+      const sortedData = (data as Project[]).sort((a, b) => {
+        // Primary sort by eventDate
+        if (a.eventDate < b.eventDate) return -1;
+        if (a.eventDate > b.eventDate) return 1;
+
+        // Secondary sort by eventName based on EVENT_NAMES order
+        const indexA = EVENT_NAMES.indexOf(a.eventName);
+        const indexB = EVENT_NAMES.indexOf(b.eventName);
+
+        if (indexA === -1 && indexB === -1) return 0; // Both not in list, maintain original order
+        if (indexA === -1) return 1; // A not in list, B is, so B comes first
+        if (indexB === -1) return -1; // B not in list, A is, so A comes first
+
+        return indexA - indexB;
+      });
+      setProjects(sortedData);
     }
   }, []);
 
@@ -54,7 +71,6 @@ export const useProjects = (): UseProjectsReturn => {
     const { error } = await supabase.from('projects').insert([
       {
         ...newProjectData,
-        status: '未定',
         files: [],
         comments: [],
       },
@@ -162,5 +178,41 @@ export const useProjects = (): UseProjectsReturn => {
     }
   }, []);
 
-  return { projects, error, addProject, updateProject, updateProjectStatus, addFileToProject, addCommentToProject, deleteFileFromProject };
+  const deleteProject = useCallback(async (projectId: string) => {
+    // Fetch the project to get file names
+    const { data: projectData, error: fetchError } = await supabase
+      .from('projects')
+      .select('files')
+      .eq('id', projectId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching project for deletion:', fetchError);
+      return;
+    }
+
+    // Delete associated files from storage
+    if (projectData && projectData.files && projectData.files.length > 0) {
+      const filePaths = projectData.files.map((file: ProjectFile) => `${projectId}/${file.name}`);
+      const { error: storageError } = await supabase.storage
+        .from('flyer-uploads')
+        .remove(filePaths);
+
+      if (storageError) {
+        console.error('Error deleting files from storage:', storageError);
+      }
+    }
+
+    // Delete the project from the database
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+    }
+  }, []);
+
+  return { projects, error, addProject, updateProject, updateProjectStatus, addFileToProject, addCommentToProject, deleteFileFromProject, deleteProject };
 };

@@ -35,8 +35,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         <div className="mt-4 space-y-3 text-sm text-gray-600">
           <p><strong>開催日:</strong> {formatDate(project.eventDate)} ({project.eventTime})</p>
           <p><strong>開催場所:</strong> {project.eventLocation}</p>
-          <p><strong>印刷枚数:</strong> {project.printCount.toLocaleString()}枚</p>
-          <p><strong>希望納品日:</strong> {formatDate(project.deliveryHopeDate)}</p>
+          <p><strong>印刷枚数:</strong> {project.printCount?.toLocaleString()}枚</p>
+          <p><strong>希望納品日:</strong> {project.deliveryHopeDate ? formatDate(project.deliveryHopeDate) : '未定'}</p>
+          {project.numberOfRecruits && (
+            <p><strong>募集人数:</strong> {project.numberOfRecruits.toLocaleString()}人</p>
+          )}
+          {project.flyerNotNeeded && (
+            <p><strong>チラシ:</strong> 不要</p>
+          )}
           {project.notes && (
             <div className="pt-2">
               <p><strong>備考:</strong></p>
